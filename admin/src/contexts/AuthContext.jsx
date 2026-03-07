@@ -51,6 +51,40 @@ function clearStoredAuth() {
   sessionStorage.removeItem(USER_KEY);
 }
 
+function parseBookvillageUser() {
+  const raw = sessionStorage.getItem('bookvillage_user');
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function getBookvillageAdminCredentials() {
+  const user = parseBookvillageUser();
+  const creds = sessionStorage.getItem('bookvillage_creds');
+
+  if (!user || user.role !== 'ADMIN' || !creds) {
+    return null;
+  }
+
+  try {
+    const decoded = atob(creds);
+    const separatorIndex = decoded.indexOf(':');
+    if (separatorIndex < 0) return null;
+
+    const username = decoded.slice(0, separatorIndex).trim();
+    const password = decoded.slice(separatorIndex + 1);
+
+    if (!username || !password) return null;
+    return { username, password };
+  } catch {
+    return null;
+  }
+}
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -59,12 +93,47 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = getStoredToken();
-    if (token) {
-      setUser(normalizeUser(getStoredUser()));
-      setIsAuthenticated(true);
-    }
-    setLoading(false);
+    let isMounted = true;
+
+    const bootstrapAuth = async () => {
+      const token = getStoredToken();
+
+      if (token) {
+        if (!isMounted) return;
+        setUser(normalizeUser(getStoredUser()));
+        setIsAuthenticated(true);
+        setLoading(false);
+        return;
+      }
+
+      const adminCredentials = getBookvillageAdminCredentials();
+      if (!adminCredentials) {
+        if (isMounted) setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await loginApi(adminCredentials.username, adminCredentials.password);
+
+        if (!isMounted) return;
+
+        sessionStorage.setItem(TOKEN_KEY, response.token);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(response.user));
+        setUser(normalizeUser(response.user));
+        setIsAuthenticated(true);
+      } catch {
+        if (!isMounted) return;
+        clearStoredAuth();
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    bootstrapAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (username, password, remember = false) => {
