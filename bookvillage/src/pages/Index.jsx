@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { Truck, RotateCcw, Clock, ArrowRight } from "lucide-react";
 import { api } from "@/api/client";
 import { toCardBook } from "@/lib/bookNormalizer";
+import { useAuth } from "@/context/AuthContext";
 
 const features = [
   { icon: Truck, label: "무료배송", desc: "2만원 이상 구매 시" },
@@ -25,6 +26,7 @@ const quickCategories = [
 ];
 
 const Index = () => {
+  const { isAdmin } = useAuth();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -67,6 +69,22 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-6 space-y-9">
         <HeroBanner />
+        {isAdmin && (
+          <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-emerald-800">관리자 계정으로 로그인되었습니다.</p>
+                <p className="text-xs text-emerald-700">아래 버튼으로 관리자 페이지로 이동할 수 있습니다.</p>
+              </div>
+              <a
+                href="/admin/"
+                className="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                관리자 페이지 이동
+              </a>
+            </div>
+          </section>
+        )}
 
         <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
           <div className="grid grid-cols-4 sm:grid-cols-7 gap-2.5 sm:gap-4">

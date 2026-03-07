@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+﻿import { createContext, useContext, useMemo, useState } from "react";
 import { api } from "@/api/client";
 
 const AuthContext = createContext(null);
@@ -16,16 +16,16 @@ export function AuthProvider({ children }) {
     return raw ? JSON.parse(raw) : null;
   });
 
-  const login = async (email, password) => {
-    const creds = btoa(unescape(encodeURIComponent(`${email}:${password}`)));
+  const login = async (username, password) => {
+    const creds = btoa(unescape(encodeURIComponent(`${username}:${password}`)));
     sessionStorage.setItem("bookvillage_creds", creds);
 
     let me;
     try {
-      me = await api.auth.login({ email, password });
+      me = await api.auth.login({ username, password });
     } catch (err) {
       if (isUnauthorizedError(err)) {
-        throw new Error("이메일 또는 비밀번호를 다시 확인해 주세요.");
+        throw new Error("\uC544\uC774\uB514 \uB610\uB294 \uBE44\uBC00\uBC88\uD638\uB97C \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694.");
       }
       throw err;
     }
@@ -37,12 +37,12 @@ export function AuthProvider({ children }) {
 
   const register = async (payload) => {
     await api.auth.register(payload);
-    await login(payload.email, payload.password);
+    await login(payload.username, payload.password);
   };
 
   const deleteAccount = async (password) => {
     if (!user?.id) {
-      throw new Error("로그인이 필요합니다.");
+      throw new Error("\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.");
     }
     await api.users.deleteMe(user.id, password);
     sessionStorage.removeItem("bookvillage_creds");

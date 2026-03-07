@@ -50,7 +50,7 @@ const Header = () => {
           {isAdmin && (
             <>
               <span className="opacity-40">|</span>
-              <Link to="/admin" className="hover:underline opacity-90 hover:opacity-100 transition-opacity">관리자</Link>
+              <a href="/admin/" className="hover:underline opacity-90 hover:opacity-100 transition-opacity">관리자</a>
             </>
           )}
           <span className="opacity-40">|</span>
