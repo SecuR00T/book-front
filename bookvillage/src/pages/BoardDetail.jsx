@@ -380,7 +380,7 @@ export default function BoardDetail() {
                 {post.authorName || "Unknown"} | 작성 {formatDateTime(post.createdAt)}
                 {post.updatedAt && ` | 수정 ${formatDateTime(post.updatedAt)}`}
               </p>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{post.content}</p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6" dangerouslySetInnerHTML={{ __html: post.content }}></p>
             </div>
 
             <div className="rounded-xl border border-border bg-background px-3 py-3">
@@ -509,7 +509,7 @@ export default function BoardDetail() {
                           </button>
                         </div>
                       ) : (
-                        <p className="mt-1 whitespace-pre-wrap text-sm">{c.content}</p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm" dangerouslySetInnerHTML={{ __html: c.content }}></p>
                       )}
 
                       {c.userId === user?.id && commentEditId !== c.id && (

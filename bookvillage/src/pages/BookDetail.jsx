@@ -422,8 +422,8 @@ const BookDetail = () => {
                 {reviews.map((review) => (
                   <div key={review.id} className="border rounded-lg p-3 text-sm">
                     <p className="font-semibold">평점: {review.rating} / 5</p>
-                    <p className="text-muted-foreground mt-1">{review.content}</p>
-                    <p className="text-xs mt-1">요약: {review.summary}</p>
+                    <p className="text-muted-foreground mt-1" dangerouslySetInnerHTML={{ __html: review.content }}></p>
+                    <p className="text-xs mt-1" dangerouslySetInnerHTML={{ __html: "요약: " + (review.summary || "") }}></p>
                     <div className="mt-2 flex gap-2">
                       <button type="button" className="px-2 py-1 border rounded text-xs" onClick={() => likeReview(review.id)}>
                         <ThumbsUp size={14} className="inline mr-1" /> 좋아요 ({review.likeCount || 0})

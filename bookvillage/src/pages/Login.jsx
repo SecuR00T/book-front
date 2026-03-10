@@ -14,7 +14,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      await login(username.trim(), password);
+      await login(username, password);
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "\uB85C\uADF8\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");

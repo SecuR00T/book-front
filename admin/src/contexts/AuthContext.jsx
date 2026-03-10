@@ -5,12 +5,19 @@ import { loginApi } from '@/api/auth';
 const TOKEN_KEY = 'accessToken';
 const USER_KEY = 'authUser';
 const DEFAULT_ADMIN_USER = { name: '관리자', email: 'admin@bukchon.kr' };
-const BROKEN_ADMIN_NAMES = new Set(['愿由ъ옄', '原亘由中역']);
+const BROKEN_ADMIN_NAMES = new Set([]);
+
+function looksGarbled(str) {
+  if (!str) return true;
+  const cjkRange = /[一-鿿豈-﫿]/;
+  const mojibake = /[?]{2,}/;
+  return cjkRange.test(str) || mojibake.test(str);
+}
 
 function normalizeUserName(name) {
   const normalized = typeof name === 'string' ? name.trim() : '';
 
-  if (!normalized || BROKEN_ADMIN_NAMES.has(normalized)) {
+  if (!normalized || BROKEN_ADMIN_NAMES.has(normalized) || looksGarbled(normalized)) {
     return DEFAULT_ADMIN_USER.name;
   }
 

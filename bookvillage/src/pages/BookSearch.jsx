@@ -250,6 +250,9 @@ export default function BookSearch() {
         </form>
       )}
 
+      {q && !loading && (
+        <p className="mb-3 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm" dangerouslySetInnerHTML={{ __html: `"${q}" 검색 결과 (${books.length}건)` }}></p>
+      )}
       {wishlistMessage && <p className="mb-3 text-sm text-primary">{wishlistMessage}</p>}
       {hint && <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">{hint}</p>}
       {loading && <p className="text-sm text-muted-foreground">Loading books...</p>}

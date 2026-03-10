@@ -139,6 +139,10 @@ export default function Board() {
           </label>
         </form>
 
+        {query && !loading && (
+          <p className="mb-2 rounded-xl border border-border bg-secondary/50 px-3 py-2 text-sm" dangerouslySetInnerHTML={{ __html: `"${query}" 검색 결과 (${posts.length}건)` }}></p>
+        )}
+
         {loading ? (
           <p className="rounded-xl border border-border bg-background px-3 py-2 text-sm text-muted-foreground">목록을 불러오는 중입니다...</p>
         ) : posts.length === 0 ? (
