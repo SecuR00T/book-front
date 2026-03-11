@@ -1,4 +1,4 @@
-import { Gift, Ticket, CalendarCheck2 } from "lucide-react";
+﻿import { Gift, Ticket, CalendarCheck2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageLayout from "@/components/PageLayout";
 
@@ -34,12 +34,12 @@ const eventCards = [
 
 export default function Events() {
   return (
-    <PageLayout title="이벤트" description="진행 중인 혜택과 프로모션을 확인해 보세요.">
+    <PageLayout title="이벤트" description="진행 중인 혜택과 프로모션을 확인해보세요">
       <section className="rounded-2xl border border-border bg-gradient-to-r from-primary/90 to-primary p-6 text-primary-foreground">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-foreground/80">BOOKVILLAGE EVENT</p>
-        <h2 className="mt-2 text-2xl font-extrabold">이번 달 추천 이벤트</h2>
+        <h2 className="mt-2 text-2xl font-extrabold">이번 주 추천 이벤트</h2>
         <p className="mt-2 text-sm text-primary-foreground/90">
-          이벤트 탭은 학습용 Security Labs가 아닌, 실제 사용자용 프로모션 페이지로 연결됩니다.
+          이벤트 탭은 학습용 Security가 아닌, 실제 사용자용 프로모션 페이지로 연결됩니다.
         </p>
       </section>
 

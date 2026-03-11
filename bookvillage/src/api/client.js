@@ -303,7 +303,7 @@ export const api = {
     deleteFavoritePost: (postId) => request(`/mypage/favorite-posts/${postId}`, { method: "DELETE" }),
     deleteReview: (reviewId, csrfToken) => request(`/mypage/reviews/${reviewId}`, { method: "DELETE", headers: { "X-CSRF-TOKEN": csrfToken } }),
   },
-  labs: {
+  security: {
     requirements: () => request("/labs/requirements"),
     simulate: (reqId, input, metadata) => request(`/labs/${reqId}/simulate`, { method: "POST", body: JSON.stringify({ input, metadata }) }),
   },
