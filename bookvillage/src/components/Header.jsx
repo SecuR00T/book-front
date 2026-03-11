@@ -24,7 +24,6 @@ const Header = () => {
     () => [
       { label: "공지사항", to: "/customer-service?tab=notice" },
       { label: "회원게시판", to: boardPath },
-      { label: "파일업로드", to: "/file-upload" },
     ],
     [boardPath],
   );

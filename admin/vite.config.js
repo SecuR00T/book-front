@@ -19,6 +19,14 @@ export default defineConfig(({ mode }) => {
                 overlay: false,
             },
             proxy: {
+                "/admin/api": {
+                    target: "http://localhost:18081",
+                    changeOrigin: true,
+                },
+                "/product-images": {
+                    target: "http://localhost:18081",
+                    changeOrigin: true,
+                },
                 "/api": {
                     target: "http://localhost:18081",
                     changeOrigin: true,

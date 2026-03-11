@@ -307,28 +307,6 @@ export const api = {
     requirements: () => request("/labs/requirements"),
     simulate: (reqId, input, metadata) => request(`/labs/${reqId}/simulate`, { method: "POST", body: JSON.stringify({ input, metadata }) }),
   },
-  fileUpload: {
-    upload: (file) => {
-      const fd = new FormData();
-      fd.append("file", file);
-      return fetch(`${API_BASE}/upload`, {
-        method: "POST",
-        headers: { ...getAuthHeader() },
-        body: fd,
-      }).then(async (res) => {
-        const text = await res.text();
-        const data = text ? JSON.parse(text) : null;
-        if (!res.ok) throw new ApiError(data?.error || "업로드 실패", { status: res.status });
-        return data;
-      });
-    },
-    list: () => request("/community/attachments"),
-    communityUpload: (file) => {
-      const fd = new FormData();
-      fd.append("file", file);
-      return request("/community/attachments", { method: "POST", body: fd });
-    },
-  },
   integration: {
     linkPreview: (url) => request("/integration/link-preview", { method: "POST", body: JSON.stringify({ url }) }),
   },

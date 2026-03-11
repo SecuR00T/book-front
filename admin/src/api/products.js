@@ -1,5 +1,25 @@
 import { apiClient } from "./client";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/admin/api";
+
+export function uploadProductImage(file) {
+  const fd = new FormData();
+  fd.append("file", file);
+  const token =
+    localStorage.getItem("accessToken") ||
+    sessionStorage.getItem("accessToken");
+  return fetch(`${BASE_URL}/products/upload-image`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: fd,
+  }).then(async (res) => {
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : null;
+    if (!res.ok) throw new Error(data?.error || "이미지 업로드 실패");
+    return data;
+  });
+}
+
 export function getProducts(params = {}) {
   return apiClient("/products", { query: params });
 }

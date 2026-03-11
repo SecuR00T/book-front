@@ -6,6 +6,7 @@ server {
     index index.html;
 
     server_tokens on;
+    client_max_body_size 50M;
 
     # Docker 내부 DNS (127.0.0.11) - 컨테이너 이름 및 EC2 IP 모두 리졸브 가능
     resolver 127.0.0.11 ipv6=off valid=10s;
@@ -32,6 +33,14 @@ server {
     location = /robots.txt {
         add_header Content-Type text/plain;
         return 200 "User-agent: *\nDisallow: /admin/\nDisallow: /admin/api/\nDisallow: /api/diagnostics/\nDisallow: /backup/\nDisallow: /uploads/\nDisallow: /swagger-ui.html\nDisallow: /v3/api-docs\nDisallow: /api/files\n";
+    }
+
+    # Product images proxy
+    location /product-images/ {
+        set $bv_backend ${BV_BACKEND_HOST}:${BV_BACKEND_PORT};
+        proxy_pass http://$bv_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
     }
 
     # Admin API proxy

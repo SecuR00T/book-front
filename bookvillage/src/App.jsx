@@ -21,7 +21,6 @@ import BoardDetail from "./pages/BoardDetail";
 import BoardWrite from "./pages/BoardWrite";
 import GuestOrderLookup from "./pages/GuestOrderLookup";
 import Security from "./pages/Security";
-import FileUpload from "./pages/FileUpload";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AccountRecovery from "./pages/AccountRecovery";
@@ -54,7 +53,6 @@ export default function App() {
               <Route path="/guest-orders" element={<GuestOrderLookup />} />
               <Route path="/events" element={<Events />} />
               <Route path="/security" element={<Security />} />
-              <Route path="/file-upload" element={<FileUpload />} />
               <Route path="/cart" element={<PrivateRoute><Cart /></PrivateRoute>} />
               <Route path="/orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
               <Route path="/orders/:orderId" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
