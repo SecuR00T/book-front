@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import PageLayout from "@/components/PageLayout";
 import { api } from "@/api/client";
 
-export default function SecurityLabs() {
+export default function Security() {
   const [requirements, setRequirements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [inputs, setInputs] = useState({});
@@ -10,7 +10,7 @@ export default function SecurityLabs() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api.labs.requirements().then((rows) => setRequirements(rows || [])).catch((e) => setError(e.message));
+    api.security.requirements().then((rows) => setRequirements(rows || [])).catch((e) => setError(e.message));
   }, []);
 
   const grouped = useMemo(() => {
@@ -27,7 +27,7 @@ export default function SecurityLabs() {
     setLoading(true);
     setError("");
     try {
-      const response = await api.labs.simulate(reqId, inputs[reqId] || "");
+      const response = await api.security.simulate(reqId, inputs[reqId] || "");
       setResults((prev) => ({ ...prev, [reqId]: response }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Simulation failed");
@@ -38,7 +38,7 @@ export default function SecurityLabs() {
 
   return (
     <PageLayout
-      title="Security Labs (48 Scenarios)"
+      title="Security (48 Scenarios)"
       description="Each REQ-COM scenario runs in controlled mode. Real exploit execution is blocked and replaced by learning logs."
     >
       {error && <p className="text-sm text-red-500 mb-4">{error}</p>}

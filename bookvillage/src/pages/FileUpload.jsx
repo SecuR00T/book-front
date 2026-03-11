@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import PageLayout from "@/components/PageLayout";
 import { api } from "@/api/client";
 
 const BACKEND_ORIGIN = window.location.origin;
 
-export default function FileUploadLab() {
+export default function FileUpload() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
@@ -34,7 +34,7 @@ export default function FileUploadLab() {
       setResult(data);
       setFile(null);
       // reset file input
-      const input = document.getElementById("lab-file-input");
+      const input = document.getElementById("file-input");
       if (input) input.value = "";
       loadFiles();
     } catch (e) {
@@ -75,7 +75,7 @@ export default function FileUploadLab() {
 
         <div className="flex flex-col sm:flex-row gap-3 items-start">
           <input
-            id="lab-file-input"
+            id="file-input"
             type="file"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             className="flex-1 text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer cursor-pointer"
