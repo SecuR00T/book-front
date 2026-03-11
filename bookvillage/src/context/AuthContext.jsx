@@ -17,9 +17,6 @@ export function AuthProvider({ children }) {
   });
 
   const login = async (username, password) => {
-    const creds = btoa(unescape(encodeURIComponent(`${username}:${password}`)));
-    sessionStorage.setItem("bookvillage_creds", creds);
-
     let me;
     try {
       me = await api.auth.login({ username, password });
@@ -30,6 +27,10 @@ export function AuthProvider({ children }) {
       throw err;
     }
 
+    // 세션 토큰 저장 (쿠키는 서버에서 Set-Cookie로 자동 설정됨)
+    if (me.sessionToken) {
+      sessionStorage.setItem("bookvillage_session_token", me.sessionToken);
+    }
     sessionStorage.setItem("bookvillage_user", JSON.stringify(me));
     setUser(me);
     notifyAuthChanged();
@@ -45,7 +46,7 @@ export function AuthProvider({ children }) {
       throw new Error("\uB85C\uADF8\uC778\uC774 \uD544\uC694\uD569\uB2C8\uB2E4.");
     }
     await api.users.deleteMe(user.id, password);
-    sessionStorage.removeItem("bookvillage_creds");
+    sessionStorage.removeItem("bookvillage_session_token");
     sessionStorage.removeItem("bookvillage_user");
     setUser(null);
     notifyAuthChanged();
@@ -53,7 +54,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     api.auth.logout().catch(() => undefined);
-    sessionStorage.removeItem("bookvillage_creds");
+    sessionStorage.removeItem("bookvillage_session_token");
     sessionStorage.removeItem("bookvillage_user");
     setUser(null);
     notifyAuthChanged();

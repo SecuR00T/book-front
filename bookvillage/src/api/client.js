@@ -18,8 +18,9 @@ const decodeEscapedUnicodeDeep = (value) => {
 };
 
 const getAuthHeader = () => {
-  const creds = sessionStorage.getItem("bookvillage_creds");
-  return creds ? { Authorization: `Basic ${creds}` } : {};
+  // 세션 토큰이 있으면 X-Session-Token 헤더로 전송 (쿠키와 중복 전송)
+  const token = sessionStorage.getItem("bookvillage_session_token");
+  return token ? { "X-Session-Token": token } : {};
 };
 
 const TRANSIENT_STATUS = new Set([502, 503, 504]);
@@ -71,7 +72,7 @@ const extractMessageFromPayload = (payload) => {
 const statusMessage = (status) => STATUS_MESSAGE[status] || "요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 
 const clearAuthSession = () => {
-  sessionStorage.removeItem("bookvillage_creds");
+  sessionStorage.removeItem("bookvillage_session_token");
   sessionStorage.removeItem("bookvillage_user");
   notifyAuthChanged();
 };
@@ -305,6 +306,28 @@ export const api = {
   labs: {
     requirements: () => request("/labs/requirements"),
     simulate: (reqId, input, metadata) => request(`/labs/${reqId}/simulate`, { method: "POST", body: JSON.stringify({ input, metadata }) }),
+  },
+  fileUpload: {
+    upload: (file) => {
+      const fd = new FormData();
+      fd.append("file", file);
+      return fetch(`${API_BASE}/upload`, {
+        method: "POST",
+        headers: { ...getAuthHeader() },
+        body: fd,
+      }).then(async (res) => {
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!res.ok) throw new ApiError(data?.error || "업로드 실패", { status: res.status });
+        return data;
+      });
+    },
+    list: () => request("/community/attachments"),
+    communityUpload: (file) => {
+      const fd = new FormData();
+      fd.append("file", file);
+      return request("/community/attachments", { method: "POST", body: fd });
+    },
   },
   integration: {
     linkPreview: (url) => request("/integration/link-preview", { method: "POST", body: JSON.stringify({ url }) }),
