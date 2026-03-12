@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Bell, FileText, HelpCircle, List, MessageSquareText, PlusCircle } from "lucide-react";
+import { Bell, FileText, HelpCircle, List, MessageSquareText, Paperclip, PlusCircle } from "lucide-react";
 import { api } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 import PageLayout from "@/components/PageLayout";
@@ -195,6 +195,22 @@ export default function CustomerService() {
                   <h3 className="text-xl font-bold">{selectedNotice.title}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">{formatCreatedAt(selectedNotice.createdAt)}</p>
                   <p className="mt-4 whitespace-pre-wrap text-sm leading-7">{selectedNotice.content}</p>
+                  {selectedNotice.attachmentUrl && (
+                    <div className="mt-5 flex items-center gap-2 rounded-xl border border-border bg-secondary/40 px-4 py-3">
+                      <Paperclip size={14} className="shrink-0 text-muted-foreground" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-muted-foreground">첨부파일</p>
+                        <a
+                          href={selectedNotice.attachmentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="break-all text-sm font-semibold text-primary underline hover:opacity-80"
+                        >
+                          {selectedNotice.attachmentName || selectedNotice.attachmentUrl}
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
               {!noticeLoading && !noticeError && !selectedNotice && (
