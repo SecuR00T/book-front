@@ -308,6 +308,7 @@ export const api = {
     addWishlist: (bookId) => request("/mypage/wishlist", { method: "POST", body: JSON.stringify({ bookId }) }),
     removeWishlist: (wishlistId) => request(`/mypage/wishlist/${wishlistId}`, { method: "DELETE" }),
     wallet: () => request("/mypage/wallet"),
+    chargePoints: (amount) => request("/mypage/points/charge", { method: "POST", body: JSON.stringify({ amount }) }),
     cancelOrder: (orderId, reason) => request(`/mypage/orders/${orderId}/cancel`, { method: "POST", body: JSON.stringify({ reason }) }),
     returnOrder: (orderId, reason, proofFileName) =>
       request(`/mypage/orders/${orderId}/return`, { method: "POST", body: JSON.stringify({ reason, proofFileName }) }),

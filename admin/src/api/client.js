@@ -51,21 +51,28 @@ function extractErrorMessage(payload, fallback) {
 }
 
 export async function apiClient(endpoint, options = {}) {
-  const { query, body, headers, ...fetchOptions } = options;
+  const { query, body, formData, headers, ...fetchOptions } = options;
   const token = getAccessToken();
 
+  // formData가 있으면 Content-Type 헤더를 지정하지 않음 (브라우저가 boundary 포함하여 자동 설정)
   const mergedHeaders = {
     ...NO_CACHE_HEADERS,
-    ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+    ...(body !== undefined && !formData ? { "Content-Type": "application/json" } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(headers || {}),
   };
+
+  const resolvedBody = formData !== undefined
+    ? formData
+    : body !== undefined
+      ? JSON.stringify(body)
+      : undefined;
 
   const response = await fetch(`${BASE_URL}${endpoint}${buildQueryString(query)}`, {
     ...fetchOptions,
     cache: "no-store",
     headers: mergedHeaders,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: resolvedBody,
   });
 
   const payload = await parseResponse(response);

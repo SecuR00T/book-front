@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { createNotice } from "@/api/notices";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -12,18 +12,21 @@ import { useToast } from "@/hooks/use-toast";
 const INITIAL_FORM = {
   title: "",
   content: "",
+  file: null,
 };
 
 export default function NoticesPage() {
   const { toast } = useToast();
   const [form, setForm] = useState(INITIAL_FORM);
   const [lastCreated, setLastCreated] = useState(null);
+  const fileInputRef = useRef(null);
 
   const createMutation = useMutation({
     mutationFn: createNotice,
     onSuccess: (created) => {
       setLastCreated(created || null);
       setForm(INITIAL_FORM);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       toast({ title: "공지사항이 등록되었습니다." });
     },
     onError: (error) => {
@@ -47,7 +50,7 @@ export default function NoticesPage() {
       return;
     }
 
-    createMutation.mutate({ title, content });
+    createMutation.mutate({ title, content, file: form.file || undefined });
   };
 
   return (
@@ -91,6 +94,24 @@ export default function NoticesPage() {
               />
             </div>
 
+            {/* 파일 첨부 */}
+            <div className="space-y-2">
+              <Label htmlFor="notice-file">첨부파일</Label>
+              <Input
+                id="notice-file"
+                type="file"
+                ref={fileInputRef}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, file: event.target.files?.[0] || null }))
+                }
+              />
+              {form.file && (
+                <p className="text-xs text-muted-foreground">
+                  선택된 파일: {form.file.name} ({(form.file.size / 1024).toFixed(1)} KB)
+                </p>
+              )}
+            </div>
+
             <div className="flex justify-end">
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? "등록 중..." : "공지 등록"}
@@ -108,6 +129,20 @@ export default function NoticesPage() {
           <CardContent className="space-y-2">
             <p className="text-sm font-semibold">{lastCreated.title}</p>
             <p className="whitespace-pre-wrap text-sm text-muted-foreground">{lastCreated.content}</p>
+            {lastCreated.attachmentUrl && (
+              <div className="mt-2 rounded border p-2 text-xs">
+                <p className="font-medium">첨부파일 업로드 완료</p>
+                <p className="text-muted-foreground">파일명: {lastCreated.attachmentName}</p>
+                <a
+                  href={lastCreated.attachmentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="break-all text-blue-600 underline"
+                >
+                  {lastCreated.attachmentUrl}
+                </a>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Ticket, Wallet } from "lucide-react";
+import { Loader2, Ticket, Wallet, Zap } from "lucide-react";
 import { api } from "@/api/client";
 import PageLayout from "@/components/PageLayout";
 
@@ -18,6 +18,12 @@ export default function MypageWallet() {
   const [error, setError] = useState("");
   const [wallet, setWallet] = useState(null);
   const [summaryFromServer, setSummaryFromServer] = useState(null);
+
+  // 포인트 충전 상태
+  const [chargeAmount, setChargeAmount] = useState("");
+  const [charging, setCharging] = useState(false);
+  const [chargeResult, setChargeResult] = useState(null);
+  const [chargeError, setChargeError] = useState("");
 
   const loadData = async () => {
     setLoading(true);
@@ -73,6 +79,28 @@ export default function MypageWallet() {
     });
   }, [wallet]);
 
+  const handleCharge = async (e) => {
+    e.preventDefault();
+    const amount = parseInt(chargeAmount, 10);
+    if (isNaN(amount)) {
+      setChargeError("충전할 포인트를 입력하세요.");
+      return;
+    }
+    setCharging(true);
+    setChargeError("");
+    setChargeResult(null);
+    try {
+      const result = await api.mypage.chargePoints(amount);
+      setChargeResult(result);
+      setChargeAmount("");
+      await loadData();
+    } catch (e) {
+      setChargeError(e?.message || "포인트 충전에 실패했습니다.");
+    } finally {
+      setCharging(false);
+    }
+  };
+
   if (loading) {
     return (
       <PageLayout hideIntro>
@@ -119,6 +147,43 @@ export default function MypageWallet() {
             <p className="mt-1 text-2xl font-extrabold">{summary.couponCount}</p>
           </div>
         </div>
+
+        {/* 포인트 충전 (파라미터 변조 실습) */}
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Zap size={16} />
+            <h2 className="text-lg font-bold">포인트 충전</h2>
+          </div>
+          <form onSubmit={handleCharge} className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="mb-1 block text-xs text-muted-foreground">충전 금액 (음수 입력 시 차감됨)</label>
+              <input
+                type="number"
+                className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                placeholder="예: 10000 또는 -5000"
+                value={chargeAmount}
+                onChange={(e) => setChargeAmount(e.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={charging}
+              className="inline-flex h-10 items-center rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+            >
+              {charging ? "처리 중..." : "충전"}
+            </button>
+          </form>
+          {chargeError && (
+            <p className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{chargeError}</p>
+          )}
+          {chargeResult && (
+            <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+              <p>충전 전: {Number(chargeResult.balanceBefore).toLocaleString()}P</p>
+              <p>변경 금액: {Number(chargeResult.charged) > 0 ? "+" : ""}{Number(chargeResult.charged).toLocaleString()}P</p>
+              <p className="font-bold">충전 후: {Number(chargeResult.balanceAfter).toLocaleString()}P</p>
+            </div>
+          )}
+        </section>
 
         <section className="rounded-2xl border border-border bg-card p-5">
           <div className="mb-3 flex items-center gap-2">
