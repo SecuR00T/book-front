@@ -62,7 +62,7 @@ export default function ProductListPage() {
           <SelectTrigger className="w-36"><SelectValue placeholder="카테고리"/></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">전체</SelectItem>
-            {['소설', '자기계발', 'IT/컴퓨터', '경영/경제', '인문', '에세이', '과학', '역사', '건강', '예술'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {['소설', '에세이', '인문', '경제/경영', '자기계발', 'IT/과학'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
       </FilterBar>
