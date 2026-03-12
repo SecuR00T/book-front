@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-const categories = ['소설', '자기계발', 'IT/컴퓨터', '경영/경제', '인문', '에세이', '과학', '역사', '건강', '예술'];
+const categories = ['소설', '에세이', '인문', '경제/경영', '자기계발', 'IT/과학'];
 export default function ProductFormPage() {
     const navigate = useNavigate();
     const { toast } = useToast();
