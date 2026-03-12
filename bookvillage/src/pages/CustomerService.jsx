@@ -202,8 +202,7 @@ export default function CustomerService() {
                         <p className="text-xs text-muted-foreground">첨부파일</p>
                         <a
                           href={selectedNotice.attachmentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          download={selectedNotice.attachmentName || true}
                           className="break-all text-sm font-semibold text-primary underline hover:opacity-80"
                         >
                           {selectedNotice.attachmentName || selectedNotice.attachmentUrl}
