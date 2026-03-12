@@ -124,9 +124,11 @@ export default function CustomerServicePage() {
             <CardTitle className="text-base">{selectedInquiry.subject}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-md bg-muted/60 p-3 text-sm">
-              {selectedInquiry.content || '문의 내용이 없습니다.'}
-            </div>
+            <div
+              className="rounded-md bg-muted/60 p-3 text-sm"
+              dangerouslySetInnerHTML={{ __html: selectedInquiry.content || '문의 내용이 없습니다.' }}
+            />
+
             <Textarea
               rows={6}
               value={answerDraft}

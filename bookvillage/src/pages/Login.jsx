@@ -14,8 +14,16 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      await login(username, password);
-      navigate("/");
+      const me = await login(username, password);
+      if (me?.role === "ADMIN") {
+        const adminUrl =
+          window.location.port === "3000"
+            ? `http://${window.location.hostname}:18080`
+            : `${window.location.origin}/admin/`;
+        window.location.href = adminUrl;
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "\uB85C\uADF8\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.");
     }

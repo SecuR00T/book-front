@@ -113,9 +113,10 @@ export default function CustomerInquiryDetail() {
 
             <div>
               <p className="mb-1 text-xs font-semibold text-muted-foreground">관리자 답변</p>
-              <p className="whitespace-pre-wrap rounded-lg border border-border bg-card px-3 py-3 text-sm leading-6">
-                {inquiry.adminAnswer || "아직 등록된 답변이 없습니다."}
-              </p>
+              <p
+                className="whitespace-pre-wrap rounded-lg border border-border bg-card px-3 py-3 text-sm leading-6"
+                dangerouslySetInnerHTML={{ __html: inquiry.adminAnswer || "아직 등록된 답변이 없습니다." }}
+              />
             </div>
           </article>
         )}

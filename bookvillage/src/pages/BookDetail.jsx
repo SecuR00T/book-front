@@ -12,6 +12,8 @@ import {
   BookOpenText,
   Truck,
   ShieldCheck,
+  Eye,
+  X,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -81,6 +83,12 @@ const BookDetail = () => {
   const [activeTab, setActiveTab] = useState(TAB.INTRO);
   const [reviewMessage, setReviewMessage] = useState("");
   const [deletingReviewId, setDeletingReviewId] = useState(null);
+
+  // 책 미리보기 (image-proxy) 상태
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewResult, setPreviewResult] = useState(null); // { type, objectUrl?, text?, contentType }
+  const [previewError, setPreviewError] = useState("");
 
   const reloadReviews = async (bookId) => {
     try {
@@ -206,6 +214,35 @@ const BookDetail = () => {
     }
   };
 
+  const openImagePreview = async () => {
+    if (!book) return;
+    // SSRF: DB에 저장된 외부 전체 URL 우선 사용, 없으면 coverImageUrl 사용
+    const imageUrl = (book.dbCoverImageUrl && book.dbCoverImageUrl.startsWith("http"))
+      ? book.dbCoverImageUrl
+      : (book.coverImageUrl || "");
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewResult(null);
+    setPreviewError("");
+    try {
+      const result = await api.books.imageProxyFetch(book.id, imageUrl);
+      setPreviewResult(result);
+    } catch (e) {
+      setPreviewError(e instanceof Error ? e.message : "미리보기 로드에 실패했습니다.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewOpen(false);
+    if (previewResult?.objectUrl) {
+      URL.revokeObjectURL(previewResult.objectUrl);
+    }
+    setPreviewResult(null);
+    setPreviewError("");
+  };
+
   const deleteReview = async (reviewId) => {
     if (!user) {
       navigate("/login");
@@ -243,7 +280,7 @@ const BookDetail = () => {
 
         <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
           <div className="flex flex-col md:flex-row">
-            <div className="w-full md:w-80 aspect-[3/4] md:min-h-[420px] bg-secondary/40 flex items-center justify-center overflow-hidden">
+            <div className="relative w-full md:w-80 aspect-[3/4] md:min-h-[420px] bg-secondary/40 flex items-center justify-center overflow-hidden group">
               {book.coverImageUrl ? (
                 <img src={book.coverImageUrl} alt={book.title} className="h-full w-full object-contain p-3" />
               ) : (
@@ -252,6 +289,15 @@ const BookDetail = () => {
                   <p className="text-xs font-semibold tracking-wide">NO COVER IMAGE</p>
                 </div>
               )}
+              {/* 미리보기 오버레이 버튼 */}
+              <button
+                type="button"
+                onClick={openImagePreview}
+                className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+              >
+                <Eye size={32} className="text-white" />
+                <span className="text-white text-sm font-semibold">책 미리보기</span>
+              </button>
             </div>
 
             <div className="flex-1 p-6 md:p-8 space-y-5">
@@ -452,6 +498,105 @@ const BookDetail = () => {
 
       </main>
       <Footer />
+
+      {/* 책 미리보기 모달 (image-proxy SSRF) */}
+      {previewOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={closePreview}
+        >
+          <div
+            className="relative flex flex-col"
+            style={{ width: "900px", maxWidth: "95vw", maxHeight: "90vh", background: "#f3f3f3", borderRadius: "8px", overflow: "hidden", boxShadow: "0 8px 40px rgba(0,0,0,0.4)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 상단 주소창 바 */}
+            <div className="flex items-center gap-2 px-3 py-2" style={{ background: "#f3f3f3", borderBottom: "1px solid #ddd" }}>
+              <button
+                type="button"
+                onClick={closePreview}
+                className="flex-shrink-0 rounded p-1 text-gray-500 hover:text-gray-800 hover:bg-gray-200 transition-colors"
+              >
+                <X size={15} />
+              </button>
+              <div
+                className="flex-1 flex items-center gap-2 rounded px-3 py-1 text-xs font-mono text-gray-600 select-all"
+                style={{ background: "#fff", border: "1px solid #ccc", minWidth: 0 }}
+              >
+                <span className="truncate">
+                  {`/api/books/${book?.id}/image-proxy?url=${encodeURIComponent(
+                    (book?.dbCoverImageUrl && book.dbCoverImageUrl.startsWith("http"))
+                      ? book.dbCoverImageUrl
+                      : (book?.coverImageUrl || "")
+                  )}`}
+                </span>
+              </div>
+            </div>
+
+            {/* 뷰어 본문 */}
+            <div className="relative flex" style={{ height: "620px" }}>
+              {/* 왼쪽 빈 페이지 */}
+              <div
+                className="flex-1 h-full"
+                style={{
+                  background: "#ffffff",
+                  borderRight: "1px solid #e0e0e0",
+                  boxShadow: "inset -4px 0 8px rgba(0,0,0,0.04)",
+                }}
+              />
+
+              {/* 오른쪽 페이지 (커버 이미지) */}
+              <div
+                className="flex-1 h-full flex items-center justify-center overflow-hidden"
+                style={{ background: "#ffffff" }}
+              >
+                {previewLoading && (
+                  <div className="flex flex-col items-center gap-3 text-gray-400">
+                    <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+                  </div>
+                )}
+                {!previewLoading && previewError && (
+                  <div className="p-6 w-full overflow-auto">
+                    <pre className="text-xs font-mono text-red-500 whitespace-pre-wrap break-all">
+                      {previewError}
+                    </pre>
+                  </div>
+                )}
+                {!previewLoading && !previewError && previewResult && (
+                  previewResult.type === "image" ? (
+                    <img
+                      src={previewResult.objectUrl}
+                      alt="미리보기"
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <div className="w-full h-full p-6 overflow-auto">
+                      <pre className="text-xs font-mono whitespace-pre-wrap text-gray-700 leading-relaxed">
+                        {previewResult.text}
+                      </pre>
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* 오른쪽 화살표 */}
+              <div
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full flex items-center justify-center cursor-pointer"
+                style={{
+                  width: "36px",
+                  height: "80px",
+                  background: "rgba(255,255,255,0.9)",
+                  borderRadius: "0 6px 6px 0",
+                  boxShadow: "2px 0 8px rgba(0,0,0,0.15)",
+                }}
+              >
+                <ChevronLeft size={18} className="text-gray-500 rotate-180" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

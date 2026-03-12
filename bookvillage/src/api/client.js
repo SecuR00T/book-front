@@ -161,6 +161,19 @@ export const api = {
     get: (bookId) => request(`/books/${bookId}`),
     shippingInfo: (bookId, zipcode) => request(`/books/${bookId}/shipping-info${zipcode ? `?zipcode=${encodeURIComponent(zipcode)}` : ""}`),
     preview: (bookId, filePath) => request(`/books/${bookId}/preview${filePath ? `?filePath=${encodeURIComponent(filePath)}` : ""}`),
+    imageProxyUrl: (bookId, url) => `${API_BASE}/books/${bookId}/image-proxy?url=${encodeURIComponent(url)}`,
+    imageProxyFetch: async (bookId, url) => {
+      const res = await fetch(`${API_BASE}/books/${bookId}/image-proxy?url=${encodeURIComponent(url)}`, {
+        headers: { ...getAuthHeader() },
+      });
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.startsWith("image/")) {
+        const blob = await res.blob();
+        return { type: "image", objectUrl: URL.createObjectURL(blob), contentType };
+      }
+      const text = await res.text();
+      return { type: "text", text, contentType };
+    },
   },
   cart: {
     list: () => request("/cart"),

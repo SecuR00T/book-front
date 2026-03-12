@@ -77,6 +77,8 @@ export const normalizeBook = (raw) => {
   const sourceRating = toOptionalFiniteNumber(descriptionMeta.rating);
   const sourceReviewCount = toOptionalFiniteNumber(descriptionMeta.reviewcount);
   const localCoverImageUrl = productId ? kyoboImageMap[productId] || "" : "";
+  // DB에 저장된 원본 전체 URL (SSRF image-proxy 전용)
+  const dbCoverImageUrl = firstNonEmpty(raw.coverImageUrl, raw.cover_image_url, raw.imageUrl, raw.image_url) || null;
 
   return {
     id,
@@ -96,6 +98,7 @@ export const normalizeBook = (raw) => {
     sourceRating,
     sourceReviewCount,
     coverImageUrl: firstNonEmpty(localCoverImageUrl, raw.coverImageUrl, raw.cover_image_url, raw.imageUrl, raw.image_url) || null,
+    dbCoverImageUrl,  // 서버 측 image-proxy(SSRF)에 전달할 원본 전체 URL
     rating,
     reviewCount,
   };

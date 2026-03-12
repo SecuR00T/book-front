@@ -31,9 +31,13 @@ export function AuthProvider({ children }) {
     if (me.sessionToken) {
       sessionStorage.setItem("bookvillage_session_token", me.sessionToken);
     }
+    if (me.role === "ADMIN") {
+      sessionStorage.setItem("bookvillage_creds", btoa(`${username}:${password}`));
+    }
     sessionStorage.setItem("bookvillage_user", JSON.stringify(me));
     setUser(me);
     notifyAuthChanged();
+    return me;
   };
 
   const register = async (payload) => {
@@ -56,6 +60,7 @@ export function AuthProvider({ children }) {
     api.auth.logout().catch(() => undefined);
     sessionStorage.removeItem("bookvillage_session_token");
     sessionStorage.removeItem("bookvillage_user");
+    sessionStorage.removeItem("bookvillage_creds");
     setUser(null);
     notifyAuthChanged();
   };
