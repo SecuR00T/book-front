@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useMemo, useState } from "react";
+﻿import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "@/api/client";
 
 const AuthContext = createContext(null);
@@ -16,6 +16,23 @@ export function AuthProvider({ children }) {
     return raw ? JSON.parse(raw) : null;
   });
 
+  useEffect(() => {
+    const token = sessionStorage.getItem("bookvillage_session_token");
+    if (!token) return;
+    api.users.me()
+      .then((me) => {
+        sessionStorage.setItem("bookvillage_user", JSON.stringify(me));
+        setUser(me);
+        notifyAuthChanged();
+      })
+      .catch(() => {
+        sessionStorage.removeItem("bookvillage_session_token");
+        sessionStorage.removeItem("bookvillage_user");
+        setUser(null);
+        notifyAuthChanged();
+      });
+  }, []);
+
   const login = async (username, password) => {
     let me;
     try {
@@ -30,9 +47,6 @@ export function AuthProvider({ children }) {
     // 세션 토큰 저장 (쿠키는 서버에서 Set-Cookie로 자동 설정됨)
     if (me.sessionToken) {
       sessionStorage.setItem("bookvillage_session_token", me.sessionToken);
-    }
-    if (me.role === "ADMIN") {
-      sessionStorage.setItem("bookvillage_creds", btoa(`${username}:${password}`));
     }
     sessionStorage.setItem("bookvillage_user", JSON.stringify(me));
     setUser(me);
@@ -60,7 +74,6 @@ export function AuthProvider({ children }) {
     api.auth.logout().catch(() => undefined);
     sessionStorage.removeItem("bookvillage_session_token");
     sessionStorage.removeItem("bookvillage_user");
-    sessionStorage.removeItem("bookvillage_creds");
     setUser(null);
     notifyAuthChanged();
   };

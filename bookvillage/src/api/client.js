@@ -140,6 +140,7 @@ export const api = {
       }),
   },
   users: {
+    me: () => request("/users/me"),
     get: (userId) => request(`/users/${userId}`),
     getProfileByUserId: (userId) => request(`/profile?user_id=${encodeURIComponent(userId)}`),
     update: (userId, data) => request(`/users/${userId}`, { method: "PUT", body: JSON.stringify(data) }),

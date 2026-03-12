@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { loginApi } from '@/api/auth';
+import { loginApi, sessionLoginApi } from '@/api/auth';
 
 const TOKEN_KEY = 'accessToken';
 const USER_KEY = 'authUser';
@@ -40,6 +40,12 @@ function getStoredToken() {
   return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
 }
 
+// 취약점: SESSION_TOKEN 쿠키가 HttpOnly 미설정 → JS에서 직접 읽기 가능 (XSS 쿠키 탈취 가능)
+function extractSessionTokenCookie() {
+  const match = document.cookie.match(/(?:^|;\s*)SESSION_TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 function getStoredUser() {
   const raw = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
   if (!raw) return null;
@@ -56,40 +62,6 @@ function clearStoredAuth() {
   localStorage.removeItem(USER_KEY);
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USER_KEY);
-}
-
-function parseBookvillageUser() {
-  const raw = sessionStorage.getItem('bookvillage_user');
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
-function getBookvillageAdminCredentials() {
-  const user = parseBookvillageUser();
-  const creds = sessionStorage.getItem('bookvillage_creds');
-
-  if (!user || user.role !== 'ADMIN' || !creds) {
-    return null;
-  }
-
-  try {
-    const decoded = atob(creds);
-    const separatorIndex = decoded.indexOf(':');
-    if (separatorIndex < 0) return null;
-
-    const username = decoded.slice(0, separatorIndex).trim();
-    const password = decoded.slice(separatorIndex + 1);
-
-    if (!username || !password) return null;
-    return { username, password };
-  } catch {
-    return null;
-  }
 }
 
 const AuthContext = createContext(null);
@@ -113,17 +85,19 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      const adminCredentials = getBookvillageAdminCredentials();
-      if (!adminCredentials) {
+      // 취약점: SESSION_TOKEN 쿠키 HttpOnly 미설정 → JS에서 직접 읽기 가능
+      // bookvillage 로그인 시 발급된 SESSION_TOKEN 쿠키로 관리자 자동 로그인 시도
+      const bvToken = extractSessionTokenCookie()
+        || sessionStorage.getItem('bookvillage_session_token');
+
+      if (!bvToken) {
         if (isMounted) setLoading(false);
         return;
       }
 
       try {
-        const response = await loginApi(adminCredentials.username, adminCredentials.password);
-
+        const response = await sessionLoginApi(bvToken);
         if (!isMounted) return;
-
         sessionStorage.setItem(TOKEN_KEY, response.token);
         sessionStorage.setItem(USER_KEY, JSON.stringify(response.user));
         setUser(normalizeUser(response.user));
