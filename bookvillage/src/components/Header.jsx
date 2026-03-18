@@ -15,6 +15,23 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const boardPath = user ? "/board" : "/login";
 
+  // 취약점 시나리오: /cookie-login API 호출 → ROLE + 토큰 + IP 삼중 검증
+  // 공격: XSS로 SESSION_TOKEN 쿠키 탈취 후 X-Forwarded-For 헤더 조작 → IP 검증 우회
+  const handleAdminAccess = async () => {
+    try {
+      const res = await fetch("/api/auth/cookie-login", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        window.location.href = data.adminRedirectUrl || "/admin/";
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "관리자 접근이 차단되었습니다. (403)");
+      }
+    } catch {
+      alert("오류가 발생했습니다.");
+    }
+  };
+
   const categoryNavItems = useMemo(
     () => categories.map((cat) => ({ label: cat, to: `/books?category=${encodeURIComponent(cat)}` })),
     [],
@@ -60,9 +77,12 @@ const Header = () => {
             {isAdmin && (
               <>
                 <span className="opacity-40">|</span>
-                <a href="/admin/" className="hover:underline opacity-90 hover:opacity-100 transition-opacity">
+                <button
+                  onClick={handleAdminAccess}
+                  className="hover:underline opacity-90 hover:opacity-100 transition-opacity"
+                >
                   관리자
-                </a>
+                </button>
               </>
             )}
             <span className="opacity-40">|</span>
