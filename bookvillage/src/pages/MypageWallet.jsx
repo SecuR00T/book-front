@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Ticket, Wallet, Zap } from "lucide-react";
+import { CreditCard, Loader2, Ticket, Wallet, Zap } from "lucide-react";
 import { api } from "@/api/client";
 import PageLayout from "@/components/PageLayout";
 
@@ -51,6 +51,7 @@ export default function MypageWallet() {
   );
 
   const pointHistories = useMemo(() => wallet?.pointHistories || [], [wallet]);
+  const paymentTransactions = useMemo(() => wallet?.paymentTransactions || [], [wallet]);
   const couponHistories = useMemo(() => {
     const acquired = (wallet?.coupons || []).map((coupon) => ({
       key: `acquire-${coupon.code}`,
@@ -206,6 +207,34 @@ export default function MypageWallet() {
                     </p>
                   </div>
                 ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <CreditCard size={16} />
+            <h2 className="text-lg font-bold">결제 내역</h2>
+          </div>
+          {paymentTransactions.length === 0 ? (
+            <p className="rounded-xl bg-secondary/40 px-4 py-3 text-sm text-muted-foreground">결제 내역이 없습니다.</p>
+          ) : (
+            <div className="space-y-2">
+              {paymentTransactions.slice(0, 50).map((tx) => (
+                <div key={tx.id} className="rounded-lg border border-border px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">{tx.orderNumber || "-"}</p>
+                    <p className="text-sm font-bold text-price">{Number(tx.amount || 0).toLocaleString("ko-KR")} KRW</p>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">결제수단: {tx.paymentMethod || "-"}</p>
+                  {tx.couponCode && <p className="mt-0.5 text-xs text-muted-foreground">쿠폰: {tx.couponCode}</p>}
+                  {Number(tx.pointUsed) > 0 && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">포인트 사용: {Number(tx.pointUsed).toLocaleString()}P</p>
+                  )}
+                  <p className="mt-0.5 text-xs text-muted-foreground">상태: {tx.status || "-"}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">일시: {formatDateTime(tx.createdAt)}</p>
+                </div>
+              ))}
             </div>
           )}
         </section>
