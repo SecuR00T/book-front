@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import BookSearch from "./pages/BookSearch";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetail";
 import Mypage from "./pages/Mypage";
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="/events" element={<Events />} />
               <Route path="/security" element={<Security />} />
               <Route path="/cart" element={<PrivateRoute><Cart /></PrivateRoute>} />
+              <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
               <Route path="/orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
               <Route path="/orders/:orderId" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
               <Route path="/mypage" element={<PrivateRoute><Mypage /></PrivateRoute>} />

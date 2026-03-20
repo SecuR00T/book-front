@@ -2,6 +2,7 @@
 import {
   Activity,
   Bell,
+  CreditCard,
   LayoutDashboard,
   LifeBuoy,
   MessageSquare,
@@ -30,6 +31,7 @@ const menuItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Products', url: '/products', icon: Package },
   { title: 'Orders', url: '/orders', icon: ShoppingCart },
+  { title: 'Payments', url: '/payments', icon: CreditCard },
   { title: 'Customers', url: '/customers', icon: Users },
   { title: 'Inventory', url: '/inventory', icon: Warehouse },
   { title: 'Customer Service', url: '/customer-service', icon: LifeBuoy },

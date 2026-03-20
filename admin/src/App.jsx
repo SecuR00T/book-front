@@ -21,6 +21,7 @@ import CouponsPage from "@/pages/Coupons";
 import ReviewsPage from "@/pages/Reviews";
 import NoticesPage from "@/pages/Notices";
 import SettingsPage from "@/pages/Settings";
+import PaymentsPage from "@/pages/Payments";
 import NotFound from "@/pages/NotFound";
 const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -55,6 +56,7 @@ const App = () => (<QueryClientProvider client={queryClient}>
               <Route path="coupons" element={<CouponsPage />}/>
               <Route path="reviews" element={<ReviewsPage />}/>
               <Route path="notices" element={<NoticesPage />}/>
+              <Route path="payments" element={<PaymentsPage />}/>
               <Route path="settings" element={<SettingsPage />}/>
             </Route>
             <Route path="*" element={<NotFound />}/>
