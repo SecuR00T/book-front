@@ -14,6 +14,10 @@ export default defineConfig({
         target: "http://localhost:8080",
         changeOrigin: true,
       },
+      "/caculator_final.apk": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
     },
   },
   plugins: [react()],
