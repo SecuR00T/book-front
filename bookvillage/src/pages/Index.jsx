@@ -8,6 +8,7 @@ import { Truck, RotateCcw, Clock, ArrowRight } from "lucide-react";
 import { api } from "@/api/client";
 import { toCardBook } from "@/lib/bookNormalizer";
 import { useAuth } from "@/context/AuthContext";
+import PopupModal from "@/components/PopupModal";
 
 const features = [
   { icon: Truck, label: "무료배송", desc: "2만원 이상 구매 시" },
@@ -65,6 +66,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PopupModal />
       <Header />
 
       <main className="container mx-auto px-4 py-6 space-y-9">

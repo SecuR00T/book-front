@@ -20,6 +20,7 @@ import MonitoringPage from "@/pages/Monitoring";
 import CouponsPage from "@/pages/Coupons";
 import ReviewsPage from "@/pages/Reviews";
 import NoticesPage from "@/pages/Notices";
+import PopupsPage from "@/pages/Popups";
 import SettingsPage from "@/pages/Settings";
 import PaymentsPage from "@/pages/Payments";
 import NotFound from "@/pages/NotFound";
@@ -56,6 +57,7 @@ const App = () => (<QueryClientProvider client={queryClient}>
               <Route path="coupons" element={<CouponsPage />}/>
               <Route path="reviews" element={<ReviewsPage />}/>
               <Route path="notices" element={<NoticesPage />}/>
+              <Route path="popups" element={<PopupsPage />}/>
               <Route path="payments" element={<PaymentsPage />}/>
               <Route path="settings" element={<SettingsPage />}/>
             </Route>

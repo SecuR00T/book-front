@@ -7,6 +7,7 @@ import {
   LifeBuoy,
   MessageSquare,
   Package,
+  Layers,
   Settings,
   ShoppingCart,
   Ticket,
@@ -39,6 +40,7 @@ const menuItems = [
   { title: 'Coupons', url: '/coupons', icon: Ticket },
   { title: 'Reviews', url: '/reviews', icon: MessageSquare },
   { title: 'Notices', url: '/notices', icon: Bell },
+  { title: 'Popups', url: '/popups', icon: Layers },
   { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
