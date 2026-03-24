@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPopups, createPopup, updatePopup, deletePopup } from "@/api/popups";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -254,7 +255,7 @@ export default function PopupsPage() {
       </Card>
 
       {/* 등록/수정 폼 모달 */}
-      {showForm && (
+      {showForm && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <Card className="w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -353,7 +354,8 @@ export default function PopupsPage() {
               </form>
             </CardContent>
           </Card>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X, ChevronDown, Star } from "lucide-react";
 
 const STORAGE_KEY = "popup_hidden_until";
+const FILE_URL_PATTERN = /\.(apk|aab|zip|pdf|msi|exe|dmg)(?:$|[?#])/i;
 
 function isSnoozed(popupId) {
   try {
@@ -19,6 +20,80 @@ function snoozeToday(popupId) {
   localStorage.setItem(`${STORAGE_KEY}_${popupId}`, tomorrow.toISOString());
 }
 
+function getBackendOrigin() {
+  if (import.meta.env.DEV) {
+    return `${window.location.protocol}//${window.location.hostname}:8080`;
+  }
+  return window.location.origin;
+}
+
+function resolvePopupUrl(linkUrl) {
+  const baseUrl =
+    linkUrl?.startsWith("/") && !linkUrl.startsWith("//")
+      ? getBackendOrigin()
+      : window.location.href;
+  return new URL(linkUrl, baseUrl);
+}
+
+function isDownloadableUrl(linkUrl) {
+  return FILE_URL_PATTERN.test(linkUrl || "");
+}
+
+function extractFilenameFromDisposition(header) {
+  if (!header) return "";
+  const utf8Match = header.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) return decodeURIComponent(utf8Match[1]);
+
+  const plainMatch = header.match(/filename="?([^";]+)"?/i);
+  return plainMatch?.[1] || "";
+}
+
+function extractFilenameFromUrl(url) {
+  const segments = url.pathname.split("/").filter(Boolean);
+  return decodeURIComponent(segments[segments.length - 1] || "download");
+}
+
+async function triggerFileDownload(linkUrl) {
+  const resolvedUrl = resolvePopupUrl(linkUrl);
+
+  if (resolvedUrl.origin !== window.location.origin) {
+    window.location.assign(resolvedUrl.toString());
+    return;
+  }
+
+  const res = await fetch(resolvedUrl.toString(), {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error(`download failed: ${res.status}`);
+  }
+
+  const contentType = (res.headers.get("content-type") || "").toLowerCase();
+  if (contentType.includes("text/html")) {
+    window.location.assign(resolvedUrl.toString());
+    return;
+  }
+
+  const blob = await res.blob();
+  const filename =
+    extractFilenameFromDisposition(res.headers.get("content-disposition")) ||
+    extractFilenameFromUrl(resolvedUrl);
+
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = objectUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(objectUrl);
+}
+
+function isMobile() {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
 export default function PopupModal() {
   const [popups, setPopups] = useState([]);
   const [index, setIndex] = useState(0);
@@ -27,6 +102,7 @@ export default function PopupModal() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (!isMobile()) return;
     fetch("/api/popups/active")
       .then((r) => r.ok ? r.json() : [])
       .then((data) => {
@@ -60,9 +136,19 @@ export default function PopupModal() {
     handleClose();
   };
 
-  const handleUpdate = () => {
-    if (popup.linkUrl) {
+  const handleUpdate = async () => {
+    if (!popup.linkUrl) return;
+
+    if (!isDownloadableUrl(popup.linkUrl)) {
       window.open(popup.linkUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    try {
+      await triggerFileDownload(popup.linkUrl);
+    } catch (error) {
+      console.error("Failed to download popup file", error);
+      window.location.assign(resolvePopupUrl(popup.linkUrl).toString());
     }
   };
 
