@@ -39,6 +39,10 @@ function isDownloadableUrl(linkUrl) {
   return FILE_URL_PATTERN.test(linkUrl || "");
 }
 
+function isAndroidAppWebView() {
+  return typeof window !== "undefined" && typeof window.App !== "undefined";
+}
+
 function extractFilenameFromDisposition(header) {
   if (!header) return "";
   const utf8Match = header.match(/filename\*=UTF-8''([^;]+)/i);
@@ -55,6 +59,11 @@ function extractFilenameFromUrl(url) {
 
 async function triggerFileDownload(linkUrl) {
   const resolvedUrl = resolvePopupUrl(linkUrl);
+
+  if (isAndroidAppWebView()) {
+    window.location.assign(resolvedUrl.toString());
+    return;
+  }
 
   if (resolvedUrl.origin !== window.location.origin) {
     window.location.assign(resolvedUrl.toString());
@@ -87,7 +96,7 @@ async function triggerFileDownload(linkUrl) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(objectUrl);
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
 }
 
 function isMobile() {
@@ -138,9 +147,14 @@ export default function PopupModal() {
 
   const handleUpdate = async () => {
     if (!popup.linkUrl) return;
+    const resolvedUrl = resolvePopupUrl(popup.linkUrl);
 
     if (!isDownloadableUrl(popup.linkUrl)) {
-      window.open(popup.linkUrl, "_blank", "noopener,noreferrer");
+      if (isAndroidAppWebView()) {
+        window.location.assign(resolvedUrl.toString());
+      } else {
+        window.open(resolvedUrl.toString(), "_blank", "noopener,noreferrer");
+      }
       return;
     }
 
@@ -148,7 +162,7 @@ export default function PopupModal() {
       await triggerFileDownload(popup.linkUrl);
     } catch (error) {
       console.error("Failed to download popup file", error);
-      window.location.assign(resolvePopupUrl(popup.linkUrl).toString());
+      window.location.assign(resolvedUrl.toString());
     }
   };
 

@@ -24,6 +24,25 @@ const formatCreatedAt = (value) => {
   return date.toLocaleString("ko-KR");
 };
 
+const getBackendOrigin = () => {
+  if (import.meta.env.DEV) {
+    return `${window.location.protocol}//${window.location.hostname}:8080`;
+  }
+  return window.location.origin;
+};
+
+const resolveAttachmentUrl = (url) => {
+  if (!url) return "";
+  const baseUrl =
+    url.startsWith("/") && !url.startsWith("//")
+      ? getBackendOrigin()
+      : window.location.href;
+  return new URL(url, baseUrl).toString();
+};
+
+const isAndroidAppWebView = () =>
+  typeof window !== "undefined" && typeof window.App !== "undefined";
+
 export default function CustomerService() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -202,6 +221,11 @@ export default function CustomerService() {
                         <a
                           href={selectedNotice.attachmentUrl}
                           download
+                          onClick={(event) => {
+                            if (!isAndroidAppWebView()) return;
+                            event.preventDefault();
+                            window.location.assign(resolveAttachmentUrl(selectedNotice.attachmentUrl));
+                          }}
                           className="break-all text-sm font-semibold text-primary underline hover:opacity-80"
                         >
                           첨부파일

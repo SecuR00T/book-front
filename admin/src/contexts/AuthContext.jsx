@@ -75,6 +75,15 @@ export function AuthProvider({ children }) {
     let isMounted = true;
 
     const bootstrapAuth = async () => {
+      // URL 파라미터로 토큰 주입 (Android 앱 딥링크 연동)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('accessToken');
+      if (urlToken) {
+        sessionStorage.setItem(TOKEN_KEY, urlToken);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(DEFAULT_ADMIN_USER));
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+
       const token = getStoredToken();
 
       if (token) {
