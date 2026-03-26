@@ -166,7 +166,7 @@ export default function PopupsPage() {
 
   const handleImageFile = async (file) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast({ title: "이미지는 5MB 이하만 가능합니다.", variant: "destructive" }); return; }
+    if (file.size > 10 * 1024 * 1024) { toast({ title: "이미지는 10MB 이하만 가능합니다.", variant: "destructive" }); return; }
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target.result);
     reader.readAsDataURL(file);
@@ -462,7 +462,7 @@ export default function PopupsPage() {
                   >
                     <ImagePlus size={24} />
                     <span className="text-sm font-semibold">{uploading ? "업로드 중..." : "탭하여 이미지 업로드"}</span>
-                    <span className="text-xs">최대 5MB · JPG / PNG</span>
+                    <span className="text-xs">최대 10MB · JPG / PNG</span>
                   </button>
                 )}
 
