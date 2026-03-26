@@ -338,6 +338,7 @@ export default function PopupsPage() {
               backgroundColor: "#fff",
               borderRadius: "20px 20px 0 0",
               maxHeight: "92vh",
+              overflowX: "hidden",
             }}
           >
             {/* 헤더 */}
@@ -359,14 +360,14 @@ export default function PopupsPage() {
 
             {/* 폼 바디 */}
             <form onSubmit={onSubmit} className="flex-1 flex flex-col min-h-0">
-              <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-4">
+              <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-4" style={{ overflowX: "hidden" }}>
 
                 {/* ── 기본 정보 ── */}
                 <SectionHeader>기본 정보</SectionHeader>
 
                 {/* 팝업 타입 토글 (Android 동일: 가로 2버튼) */}
                 <FormLabel>팝업 타입 *</FormLabel>
-                <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="flex gap-2 mb-4" style={{ width: "100%" }}>
                   {[
                     { value: "update", emoji: "📦", label: "업데이트 공지" },
                     { value: "ad",     emoji: "📢", label: "광고 배너" },
@@ -380,6 +381,9 @@ export default function PopupsPage() {
                         onClick={() => setForm((p) => ({ ...p, popupType: o.value }))}
                         className="h-12 rounded-xl text-sm font-bold transition-all"
                         style={{
+                          flex: "1 1 0",
+                          minWidth: 0,
+                          overflow: "hidden",
                           backgroundColor: selected
                             ? (isAdBtn ? C.amber : C.navy)
                             : "#fff",
