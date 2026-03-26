@@ -167,8 +167,10 @@ export default function PopupModal() {
   };
 
   const rawContent = popup.content || "";
-  const isAd = rawContent.startsWith("[AD]");
-  const adContent = isAd ? rawContent.slice(4).trim() : "";
+  const isAd = popup.popupType === "ad";
+
+  // 광고 팝업 내용
+  const adContent = rawContent;
 
   // 업데이트 팝업용 파싱: "앱이름|설명" 또는 그냥 설명
   const parts = rawContent.split("|");
@@ -202,6 +204,18 @@ export default function PopupModal() {
               <X size={18} className="text-gray-500" />
             </button>
           </div>
+
+          {/* 광고 이미지 */}
+          {popup.imageUrl && (
+            <div className="px-5 pb-3">
+              <img
+                src={popup.imageUrl}
+                alt={popup.title}
+                className="w-full rounded-xl object-cover"
+                style={{ maxHeight: 200 }}
+              />
+            </div>
+          )}
 
           {/* 광고 내용 */}
           {adContent && (
