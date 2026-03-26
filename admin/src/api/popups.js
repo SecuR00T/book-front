@@ -23,13 +23,9 @@ export function deletePopup(id) {
 export async function uploadPopupImage(file) {
   const formData = new FormData();
   formData.append("file", file);
-  const BASE = import.meta.env.VITE_API_BASE_URL || "/admin/api";
-  const res = await fetch(`${BASE}/popups/upload-image`, {
+  // apiClient의 formData 옵션 사용 → 토큰·헤더 자동 처리
+  return apiClient("/popups/upload-image", {
     method: "POST",
-    body: formData,
-    credentials: "include",
-    headers: { Authorization: `Bearer ${sessionStorage.getItem("admin_token") || ""}` },
+    formData,
   });
-  if (!res.ok) throw new Error("이미지 업로드 실패");
-  return res.json(); // { imageUrl: "/uploads/popups/..." }
 }

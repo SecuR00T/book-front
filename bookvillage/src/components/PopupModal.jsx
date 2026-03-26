@@ -167,10 +167,11 @@ export default function PopupModal() {
   };
 
   const rawContent = popup.content || "";
-  const isAd = popup.popupType === "ad";
+  // popupType 필드 우선, 없으면 [AD] 접두어로 fallback
+  const isAd = popup.popupType === "ad" || (!popup.popupType && rawContent.startsWith("[AD]"));
 
-  // 광고 팝업 내용
-  const adContent = rawContent;
+  // 광고 팝업 내용 ([AD] 접두어 제거)
+  const adContent = rawContent.startsWith("[AD]") ? rawContent.slice(4).trim() : rawContent;
 
   // 업데이트 팝업용 파싱: "앱이름|설명" 또는 그냥 설명
   const parts = rawContent.split("|");

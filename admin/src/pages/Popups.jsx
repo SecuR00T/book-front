@@ -111,12 +111,10 @@ export default function PopupsPage() {
       toast({ title: `이미지는 ${maxMB}MB 이하만 가능합니다.`, variant: "destructive" });
       return;
     }
-    // 로컬 미리보기
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target.result);
     reader.readAsDataURL(file);
 
-    // 서버 업로드
     try {
       setUploading(true);
       const { imageUrl } = await uploadPopupImage(file);
@@ -140,6 +138,15 @@ export default function PopupsPage() {
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending;
+
+  /* ── 섹션 제목 (모달 내부용) ── */
+  const SectionTitle = ({ children }) => (
+    <div className="flex items-center gap-2 pt-3 pb-1">
+      <div className="h-px flex-1 bg-border" />
+      <span className="text-[11px] font-semibold text-muted-foreground tracking-widest uppercase whitespace-nowrap">{children}</span>
+      <div className="h-px flex-1 bg-border" />
+    </div>
+  );
 
   return (
     <div className="space-y-5">
@@ -240,157 +247,179 @@ export default function PopupsPage() {
         </CardContent>
       </Card>
 
-      {/* ── 등록/수정 모달 ── */}
+      {/* ── 등록/수정 모달 (모바일 최적화: 풀스크린) ── */}
       {showForm && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm sm:px-4">
+          <div className="w-full sm:max-w-lg bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+
+            {/* 모달 헤더 — 고정 */}
+            <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b flex-shrink-0">
               <h2 className="text-base font-semibold text-[#2f355f]">
                 {editId ? "팝업 수정" : "새 팝업 등록"}
               </h2>
-              <button onClick={closeForm} className="text-muted-foreground hover:text-foreground transition-colors">
-                <X className="h-5 w-5" />
+              <button onClick={closeForm} className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors -mr-2">
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
 
-            <form onSubmit={onSubmit} className="px-6 py-5 space-y-4">
+            {/* 모달 바디 — 스크롤 */}
+            <form onSubmit={onSubmit} className="flex-1 overflow-y-auto overscroll-contain">
+              <div className="px-5 sm:px-6 py-5 space-y-5">
 
-              {/* 팝업 타입 */}
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium">팝업 타입 <span className="text-destructive">*</span></Label>
-                <div className="flex gap-2">
-                  {POPUP_TYPE_OPTIONS.map((o) => (
-                    <button
-                      key={o.value}
-                      type="button"
-                      onClick={() => setForm((p) => ({ ...p, popupType: o.value }))}
-                      className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                        form.popupType === o.value
-                          ? o.value === "ad"
-                            ? "bg-amber-500 text-white border-amber-500"
-                            : "bg-[#2f355f] text-white border-[#2f355f]"
-                          : "border-input text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                {/* ── 섹션 1: 기본 정보 ── */}
+                <SectionTitle>기본 정보</SectionTitle>
 
-              {/* 제목 */}
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium">제목 <span className="text-destructive">*</span></Label>
-                <Input
-                  placeholder="팝업 제목을 입력하세요"
-                  value={form.title}
-                  onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                  maxLength={200}
-                />
-              </div>
-
-              {/* 내용 */}
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium">내용</Label>
-                <Textarea
-                  placeholder={
-                    form.popupType === "ad"
-                      ? "광고 내용을 입력하세요"
-                      : "앱이름|업데이트 설명  (예: 북촌|보안 업데이트가 포함되어 있습니다)"
-                  }
-                  value={form.content}
-                  onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))}
-                  rows={3}
-                  className="resize-none"
-                />
-                {form.popupType === "update" && (
-                  <p className="text-xs text-muted-foreground">앱이름|설명 형식으로 입력하면 앱카드에 이름이 표시됩니다.</p>
-                )}
-              </div>
-
-              {/* 이미지 업로드 */}
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium">이미지</Label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleImageFile(e.target.files?.[0])}
-                />
-                {imagePreview ? (
-                  <div className="relative rounded-xl overflow-hidden border border-input bg-muted" style={{ maxHeight: 180 }}>
-                    <img src={imagePreview} alt="preview" className="w-full object-cover" style={{ maxHeight: 180 }} />
-                    <button
-                      type="button"
-                      onClick={() => { setImagePreview(""); setForm((p) => ({ ...p, imageUrl: "" })); }}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
-                    >
-                      <X size={14} />
-                    </button>
+                {/* 팝업 타입 */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">팝업 타입 <span className="text-destructive">*</span></Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {POPUP_TYPE_OPTIONS.map((o) => (
+                      <button
+                        key={o.value}
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, popupType: o.value }))}
+                        className={`py-3 rounded-xl border text-sm font-semibold transition-all ${
+                          form.popupType === o.value
+                            ? o.value === "ad"
+                              ? "bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-200"
+                              : "bg-[#2f355f] text-white border-[#2f355f] shadow-md shadow-indigo-200"
+                            : "border-input text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {o.value === "update" ? "📦 " : "📢 "}{o.label}
+                      </button>
+                    ))}
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="w-full h-24 rounded-xl border-2 border-dashed border-input text-muted-foreground hover:border-[#2f355f] hover:text-[#2f355f] transition-colors flex flex-col items-center justify-center gap-1.5 text-sm"
-                  >
-                    <ImagePlus size={22} />
-                    {uploading ? "업로드 중..." : "이미지 클릭하여 업로드 (최대 5MB)"}
-                  </button>
-                )}
+                </div>
+
+                {/* 제목 */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">제목 <span className="text-destructive">*</span></Label>
+                  <Input
+                    placeholder="팝업 제목을 입력하세요"
+                    value={form.title}
+                    onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                    maxLength={200}
+                    className="h-11"
+                  />
+                </div>
+
+                {/* 내용 */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">내용</Label>
+                  <Textarea
+                    placeholder={
+                      form.popupType === "ad"
+                        ? "광고 내용을 입력하세요"
+                        : "앱이름|업데이트 설명\n예: 북촌|보안 업데이트가 포함되어 있습니다"
+                    }
+                    value={form.content}
+                    onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))}
+                    rows={3}
+                    className="resize-none text-sm"
+                  />
+                  {form.popupType === "update" && (
+                    <p className="text-xs text-muted-foreground bg-blue-50 text-blue-600 rounded-lg px-3 py-2">
+                      앱이름|설명 형식으로 입력하면 앱카드에 이름이 표시됩니다.
+                    </p>
+                  )}
+                </div>
+
+                {/* ── 섹션 2: 미디어 ── */}
+                <SectionTitle>미디어 & 링크</SectionTitle>
+
+                {/* 이미지 업로드 */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">이미지 {form.popupType === "ad" && <span className="text-xs text-muted-foreground font-normal">(광고 배너에 표시)</span>}</Label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageFile(e.target.files?.[0])}
+                  />
+                  {imagePreview ? (
+                    <div className="relative rounded-xl overflow-hidden border border-input bg-muted" style={{ maxHeight: 200 }}>
+                      <img src={imagePreview} alt="preview" className="w-full object-cover" style={{ maxHeight: 200 }} />
+                      <button
+                        type="button"
+                        onClick={() => { setImagePreview(""); setForm((p) => ({ ...p, imageUrl: "" })); }}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 active:scale-95 transition"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="w-full py-6 rounded-xl border-2 border-dashed border-input text-muted-foreground hover:border-[#2f355f] hover:text-[#2f355f] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-2 text-sm"
+                    >
+                      <ImagePlus size={26} />
+                      <span className="font-medium">{uploading ? "업로드 중..." : "탭하여 이미지 업로드"}</span>
+                      <span className="text-xs text-muted-foreground">최대 5MB, JPG / PNG</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* 링크 URL */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">링크 URL</Label>
+                  <Input
+                    placeholder={form.popupType === "update" ? "APK 다운로드 경로" : "https://example.com"}
+                    value={form.linkUrl}
+                    onChange={(e) => setForm((p) => ({ ...p, linkUrl: e.target.value }))}
+                    className="h-11"
+                  />
+                </div>
+
+                {/* ── 섹션 3: 일정 & 설정 ── */}
+                <SectionTitle>일정 & 설정</SectionTitle>
+
+                {/* 날짜 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">시작일 <span className="text-destructive">*</span></Label>
+                    <Input type="date" value={form.startDate} onChange={(e) => setForm((p) => ({ ...p, startDate: e.target.value }))} className="h-11" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">종료일 <span className="text-destructive">*</span></Label>
+                    <Input type="date" value={form.endDate} onChange={(e) => setForm((p) => ({ ...p, endDate: e.target.value }))} className="h-11" />
+                  </div>
+                </div>
+
+                {/* 디바이스 + 사용여부 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Device 타입</Label>
+                    <select className={`${selectCls} w-full h-11`} value={form.deviceType} onChange={(e) => setForm((p) => ({ ...p, deviceType: e.target.value }))}>
+                      {DEVICE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">사용여부</Label>
+                    <label className="flex items-center gap-2.5 h-11 cursor-pointer px-3 rounded-lg border border-input hover:bg-muted transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={form.isActive}
+                        onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))}
+                        className="h-4.5 w-4.5 accent-[#2f355f]"
+                      />
+                      <span className={`text-sm font-medium ${form.isActive ? "text-[#2f355f]" : "text-muted-foreground"}`}>
+                        {form.isActive ? "사용" : "미사용"}
+                      </span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
-              {/* 링크 URL */}
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium">링크 URL</Label>
-                <Input
-                  placeholder={form.popupType === "update" ? "APK 다운로드 경로" : "https://example.com"}
-                  value={form.linkUrl}
-                  onChange={(e) => setForm((p) => ({ ...p, linkUrl: e.target.value }))}
-                />
-              </div>
-
-              {/* 날짜 */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-medium">시작일 <span className="text-destructive">*</span></Label>
-                  <Input type="date" value={form.startDate} onChange={(e) => setForm((p) => ({ ...p, startDate: e.target.value }))} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-medium">종료일 <span className="text-destructive">*</span></Label>
-                  <Input type="date" value={form.endDate} onChange={(e) => setForm((p) => ({ ...p, endDate: e.target.value }))} />
-                </div>
-              </div>
-
-              {/* 디바이스 + 사용여부 */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-medium">Device 타입</Label>
-                  <select className={`${selectCls} w-full`} value={form.deviceType} onChange={(e) => setForm((p) => ({ ...p, deviceType: e.target.value }))}>
-                    {DEVICE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-medium">사용여부</Label>
-                  <label className="flex items-center gap-2 h-10 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.isActive}
-                      onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))}
-                      className="h-4 w-4 accent-[#2f355f]"
-                    />
-                    <span className={`text-sm font-medium ${form.isActive ? "text-[#2f355f]" : "text-muted-foreground"}`}>
-                      {form.isActive ? "사용" : "미사용"}
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t">
-                <Button type="button" variant="outline" onClick={closeForm} className="h-9">취소</Button>
-                <Button type="submit" disabled={isPending || uploading} className="h-9 bg-[#2f355f] hover:bg-[#23284b] text-white">
+              {/* 하단 버튼 — 고정 */}
+              <div className="sticky bottom-0 bg-white border-t px-5 sm:px-6 py-4 flex gap-2">
+                <Button type="button" variant="outline" onClick={closeForm} className="flex-1 sm:flex-none h-11 text-sm">
+                  취소
+                </Button>
+                <Button type="submit" disabled={isPending || uploading} className="flex-1 sm:flex-none h-11 bg-[#2f355f] hover:bg-[#23284b] text-white text-sm font-semibold">
                   {isPending ? "저장 중..." : editId ? "수정 완료" : "등록"}
                 </Button>
               </div>
