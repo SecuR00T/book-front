@@ -191,7 +191,7 @@ const BookDetail = () => {
       navigate("/login");
       return;
     }
-    addItem({ bookId: book.id, title: book.title, price: Number(book.price) }, 1);
+    addItem({ bookId: book.id, title: book.title, price: Number(book.price), coverImageUrl: book.coverImageUrl }, 1);
     navigate("/cart");
   };
 

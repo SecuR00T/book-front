@@ -16,6 +16,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/api/client";
+import { normalizeBook } from "@/lib/bookNormalizer";
 import PageLayout from "@/components/PageLayout";
 
 const toSafeNumber = (v, fb = 0) => { const n = Number(v); return Number.isFinite(n) ? n : fb; };
@@ -54,6 +55,8 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("CARD");
   const [selectedCouponCode, setSelectedCouponCode] = useState("");
   const [usePoints, setUsePoints] = useState("");
+
+  const [bookCovers, setBookCovers] = useState({});
 
   // 카드 정보
   const [cardCompany, setCardCompany] = useState("");
@@ -96,6 +99,26 @@ export default function Checkout() {
       }
     })();
   }, [user?.id]);
+
+  // 책 커버 이미지 가져오기
+  useEffect(() => {
+    if (items.length === 0) return;
+    const missing = items.filter((item) => !item.coverImageUrl && !bookCovers[item.bookId]);
+    if (missing.length === 0) return;
+    (async () => {
+      const results = await Promise.allSettled(missing.map((item) => api.books.get(item.bookId)));
+      const newCovers = {};
+      results.forEach((res, i) => {
+        if (res.status === "fulfilled" && res.value) {
+          const book = normalizeBook(res.value);
+          if (book?.coverImageUrl) newCovers[missing[i].bookId] = book.coverImageUrl;
+        }
+      });
+      if (Object.keys(newCovers).length > 0) {
+        setBookCovers((prev) => ({ ...prev, ...newCovers }));
+      }
+    })();
+  }, [items]);
 
   const formatCardNumber = (v) => v.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1-").replace(/-$/, "");
   const formatExpiry = (v) => {
@@ -200,8 +223,16 @@ export default function Checkout() {
             <div className="divide-y divide-border">
               {items.map((item) => (
                 <div key={item.cartItemId || item.bookId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <div className="flex h-14 w-10 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground/30">
-                    <BookOpen size={16} />
+                  <div className="flex h-14 w-10 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground/30 overflow-hidden">
+                    {(item.coverImageUrl || bookCovers[item.bookId]) ? (
+                      <img
+                        src={item.coverImageUrl || bookCovers[item.bookId]}
+                        alt={item.title}
+                        className="h-full w-full object-contain p-0.5"
+                      />
+                    ) : (
+                      <BookOpen size={16} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-sm font-medium">{item.title}</p>

@@ -15,6 +15,7 @@ const normalizeItem = (item) => ({
   price: toSafeNumber(item?.price ?? item?.unitPrice, 0),
   quantity: Math.max(1, toSafeNumber(item?.quantity, 1)),
   lineTotal: toSafeNumber(item?.lineTotal, 0),
+  coverImageUrl: item?.coverImageUrl || null,
 });
 
 const hasSignedInUser = () => Boolean(sessionStorage.getItem("bookvillage_user"));
